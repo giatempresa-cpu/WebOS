@@ -1,5 +1,4 @@
-cat << 'EOF_API' > webos_api.py
-import http.server, subprocess, json, urllib.parse, os, re, urllib.request
+import http.server, subprocess, json, urllib.parse, os, urllib.request
 
 PORT = 8085
 
@@ -17,17 +16,6 @@ def get_sys():
         mem = f"{int(100*(1-free/tot))}%"
     except: pass
     return {"cpu": cpu, "mem": mem}
-
-def get_dlna():
-    d = {"audio": 0, "video": 0, "image": 0, "clients": []}
-    try:
-        with urllib.request.urlopen("http://127.0.0.1:8200", timeout=2) as r: html = r.read().decode('utf-8', errors='ignore')
-        for k, lab in [('audio','Audio'), ('video','Video'), ('image','Image')]:
-            m = re.search(fr'{lab} files.*?<td>(\d+)', html, re.S)
-            if m: d[k] = int(m.group(1))
-        d["clients"] = list(set(re.findall(r'<td>(\d+\.\d+\.\d+\.\d+)</td>', html)))
-    except: pass
-    return d
 
 def get_disks():
     out = []
@@ -76,7 +64,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
         act = qs.get('action', [''])[0]; res = {"status": "success", "msg": "OK"}
-        if act == 'stats': res = {"sys": get_sys(), "dlna": get_dlna()}
+        if act == 'stats': res = {"sys": get_sys()}
         elif act == 'files': res = {"files": get_files()}
         elif act == 'disks': res = {"disks": get_disks()}
         elif act == 'sysinfo': res = {"info": get_info()}
@@ -88,7 +76,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
         elif act == 'delete_file':
             fp = os.path.normpath(os.path.join("/media/videos", qs.get('file', [''])[0].lstrip("/")))
             if fp.startswith("/media/videos") and os.path.exists(fp): os.remove(fp); res["msg"] = "Ficheiro apagado!"
-        elif act == 'rescan_dlna': sh("systemctl stop minidlna && minidlnad -R && systemctl restart minidlna"); res["msg"] = "MiniDLNA reindexado!"
         elif act == 'clean_storage': sh("rm -rf /media/videos/.Trash-0/* && sync"); res["msg"] = "Lixeira limpa!"
         elif act == 'reboot_system': subprocess.Popen(["reboot"]); res["msg"] = "A reiniciar..."
         elif act == 'poweroff_system': subprocess.Popen(["poweroff"]); res["msg"] = "A desligar..."
@@ -96,4 +83,3 @@ class Handler(http.server.BaseHTTPRequestHandler):
     def log_message(self, fmt, *a): return
 
 if __name__ == '__main__': http.server.HTTPServer(('0.0.0.0', PORT), Handler).serve_forever()
-EOF_API
