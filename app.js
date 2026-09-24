@@ -16,7 +16,7 @@ function loadPrefs() {
 loadPrefs();
 
 function savePrefs(name, bg, acc) {
-  if (name) localStorage.getItem('pos_name', name);
+  if (name) localStorage.setItem('pos_name', name);
   if (bg) localStorage.setItem('pos_bg', bg);
   if (acc) localStorage.setItem('pos_acc', acc);
   loadPrefs();
@@ -73,7 +73,6 @@ function runSysAction(act) {
   fetch(API + '?action=' + act).then(r=>r.json()).then(d=>{ alert(d.msg); }).catch(e=>alert('Erro: ' + e));
 }
 
-// ================= GESTOR DE FICHEIROS COM PASTAS =================
 function loadFiles(path = "") {
   currentDir = path;
   const box = document.getElementById('file-list'); if (!box) return;
@@ -85,7 +84,6 @@ function loadFiles(path = "") {
   fetch(API + '?action=files&path=' + encodeURIComponent(path)).then(r=>r.json()).then(d=>{
     let h = '<div style="display:flex;flex-direction:column;gap:6px;">';
     
-    // Botão Voltar se estivermos em subpasta
     if (path !== "") {
       const parentPath = path.split('/').slice(0, -1).join('/');
       h += `<div style="display:flex;align-items:center;background:rgba(255,255,255,0.05);border:1px solid var(--surface-border);padding:10px 14px;border-radius:var(--radius-sm);cursor:pointer;" onclick="loadFiles('${parentPath}')">
@@ -148,7 +146,6 @@ function deleteItem(path) {
   }
 }
 
-// ================= MONITOR NATIVO DE RECURSOS =================
 function initMonitor() {
   function updateMonitorData() {
     fetch(API + '?action=stats').then(r=>r.json()).then(d=>{
@@ -164,7 +161,6 @@ function initMonitor() {
   window.monitorInterval = setInterval(updateMonitorData, 2000);
 }
 
-// ================= GESTÃO DE JANELAS E APLICAÇÕES =================
 function openApp(id) {
   const wId = "win-" + id;
   const exist = document.getElementById(wId);
@@ -278,6 +274,9 @@ function openApp(id) {
       </div></div>
       <div style="display:flex;gap:8px;margin-top:auto;"><button class="btn-ui" style="flex:1;justify-content:center;" onclick="savePrefs(document.getElementById('cfg-user').value, null, null);alert('Salvo!')">Salvar</button><button class="btn-ui btn-danger" onclick="resetOS()">Reset Fábrica</button></div>
     </div>`;
+  } else if (id === 'vscode') {
+    title = "Visual Studio Code"; win.style.width = "900px"; win.style.height = "560px";
+    body = `<iframe src="${window.location.protocol}//${window.location.hostname}:8443"></iframe>`;
   }
 
   win.innerHTML = `<div class="window-header" onmousedown="startDrag(event, '${win.id}')">
@@ -314,4 +313,4 @@ function closeApp(id) { const w = document.getElementById("win-" + id); if (w) w
 function bringToFront(win) {
   win.style.zIndex = ++topZ;
   document.querySelectorAll(".task-item").forEach(e => e.classList.remove("active"));
-  const t = document.getElementById(
+  const t = document.getElementById("task-" + win.id.replace("win-"
