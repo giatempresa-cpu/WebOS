@@ -1,19 +1,19 @@
-cat << 'EOF_INSTALL' > install.sh
 #!/bin/bash
 
 echo "=========================================="
 echo "    Instalador Automático - WebOS Server  "
+echo "    Powered by GIAT                       "
 echo "=========================================="
 echo ""
 
 if [ "$EUID" -ne 0 ]; then
-  echo "Por favor, execute este script como root (sudo ./install.sh)"
+  echo "Por favor, execute este script como root (sudo bash install.sh)"
   exit
 fi
 
 echo "[1/4] Instalando dependências do sistema..."
 apt-get update -qq
-apt-get install -y python3 minidlna transmission-daemon glances curl -qq
+apt-get install -y python3 glances curl -qq
 
 echo "[2/4] Copiando arquivos da interface web..."
 mkdir -p /var/www/html
@@ -46,7 +46,7 @@ systemctl daemon-reload
 systemctl enable webos-api.service --now >/dev/null 2>&1
 systemctl restart webos-api.service
 
-# Extra: Cria o diretório de videos se não existir
+# Cria o diretório padrão se não existir
 mkdir -p /media/videos
 
 echo ""
@@ -55,5 +55,3 @@ echo "    Instalação Concluída com Sucesso!     "
 echo "=========================================="
 LOCAL_IP=$(hostname -I | awk '{print $1}')
 echo "Acesse no seu navegador: http://$LOCAL_IP"
-EOF_INSTALL
-chmod +x install.sh
