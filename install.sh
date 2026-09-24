@@ -15,7 +15,6 @@ echo "[1/4] Instalando dependências do sistema..."
 apt-get update -qq
 apt-get install -y python3 glances curl wget -qq
 
-# URL base do seu repositório no GitHub
 REPO_URL="https://raw.githubusercontent.com/giatempresa-cpu/WebOS/main"
 
 echo "[2/4] Baixando arquivos da interface web do GitHub..."
@@ -49,7 +48,6 @@ systemctl daemon-reload
 systemctl enable webos-api.service --now >/dev/null 2>&1
 systemctl restart webos-api.service
 
-# Cria o diretório padrão se não existir
 mkdir -p /media/videos
 
 echo ""
