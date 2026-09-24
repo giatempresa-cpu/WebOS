@@ -15,7 +15,13 @@ def get_sys():
         tot = int(m['MemTotal'].split()[0]); free = int(m.get('MemAvailable', m['MemFree']).split()[0])
         mem = f"{int(100*(1-free/tot))}%"
     except: pass
-    return {"cpu": cpu, "mem": mem}
+    
+    # Detalhes extras para o Monitor Nativo
+    uptime = sh("uptime -p").replace("up ", "")
+    temp = sh("cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null")
+    temp_c = f"{temp[:2]}°C" if len(temp) >= 2 else "N/A"
+    
+    return {"cpu": cpu, "mem": mem, "uptime": uptime, "temp": temp_c}
 
 def get_disks():
     out = []
@@ -25,22 +31,32 @@ def get_disks():
             out.append({"dev": p[0], "size": p[1], "used": p[2], "avail": p[3], "perc": p[4], "mount": p[5]})
     return out
 
-def get_files():
-    b = "/media/videos"; out = []
-    if os.path.exists(b):
-        for r, ds, fs in os.walk(b):
-            if ".Trash-0" in r: continue
-            for f in fs:
-                fp = os.path.join(r, f)
-                try: out.append({"name": f, "path": fp.replace(b, ""), "size": f"{os.path.getsize(fp)/(1024*1024):.1f} MB"})
-                except: pass
-    return out
+def get_files(req_path):
+    base = "/media/videos"
+    target = os.path.normpath(os.path.join(base, req_path.lstrip("/")))
+    if not target.startswith(base):
+        target = base
+    
+    if not os.path.exists(target):
+        os.makedirs(target, exist_ok=True)
+
+    items = []
+    try:
+        for entry in os.scandir(target):
+            if entry.name.startswith('.') and entry.name == '.Trash-0': continue
+            rel_path = os.path.join(req_path, entry.name)
+            if entry.is_dir():
+                items.append({"name": entry.name, "is_dir": True, "path": rel_path, "size": "--"})
+            else:
+                try: sz = f"{entry.stat().st_size / (1024*1024):.1f} MB"
+                except: sz = "0 MB"
+                items.append({"name": entry.name, "is_dir": False, "path": rel_path, "size": sz})
+    except: pass
+    return {"current": req_path, "items": items}
 
 def get_info():
-    t = sh("cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null")
-    temp = f"{t[:2]}°C" if len(t) >= 2 else "N/A"
     ip = sh("hostname -I | awk '{print $1}'")
-    return {"kernel": sh("uname -sr"), "arch": sh("uname -m"), "uptime": sh("uptime -p").replace("up ", ""), "temp": temp, "ip": ip}
+    return {"kernel": sh("uname -sr"), "arch": sh("uname -m"), "uptime": sh("uptime -p").replace("up ", ""), "ip": ip}
 
 def get_cron():
     return [l for l in sh("crontab -l").splitlines() if l and not l.startswith('#')]
@@ -49,23 +65,38 @@ class Handler(http.server.BaseHTTPRequestHandler):
     def end_headers(self):
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type, X-Filename')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type, X-Filename, X-Path')
         super().end_headers()
     def do_OPTIONS(self): self.send_response(200); self.end_headers()
 
     def do_POST(self):
+        qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
         if '/upload' in self.path:
             length = int(self.headers.get('Content-Length', 0))
             fn = os.path.basename(urllib.parse.unquote(self.headers.get('X-Filename', 'upload.bin')))
-            with open(os.path.join("/media/videos", fn), 'wb') as f: f.write(self.rfile.read(length))
+            subpath = urllib.parse.unquote(self.headers.get('X-Path', ''))
+            dest_dir = os.path.normpath(os.path.join("/media/videos", subpath.lstrip("/")))
+            os.makedirs(dest_dir, exist_ok=True)
+            with open(os.path.join(dest_dir, fn), 'wb') as f: f.write(self.rfile.read(length))
             self.send_response(200); self.end_headers()
-            self.wfile.write(b'{"status":"success","msg":"Ficheiro guardado!"}')
+            self.wfile.write(b'{"status":"success","msg":"Arquivo guardado com sucesso!"}')
+        elif '/mkdir' in self.path:
+            length = int(self.headers.get('Content-Length', 0))
+            body = json.loads(self.rfile.read(length).decode('utf-8')) if length > 0 else {}
+            dirname = body.get('name', 'Nova Pasta')
+            subpath = body.get('path', '')
+            target = os.path.normpath(os.path.join("/media/videos", subpath.lstrip("/"), dirname))
+            os.makedirs(target, exist_ok=True)
+            self.send_response(200); self.end_headers()
+            self.wfile.write(b'{"status":"success","msg":"Pasta criada!"}')
 
     def do_GET(self):
         qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
         act = qs.get('action', [''])[0]; res = {"status": "success", "msg": "OK"}
         if act == 'stats': res = {"sys": get_sys()}
-        elif act == 'files': res = {"files": get_files()}
+        elif act == 'files':
+            req_path = qs.get('path', [''])[0]
+            res = get_files(req_path)
         elif act == 'disks': res = {"disks": get_disks()}
         elif act == 'sysinfo': res = {"info": get_info()}
         elif act == 'sysinfo_ip': res = {"ip": sh("hostname -I | awk '{print $1}'")}
@@ -74,8 +105,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
             cmd = qs.get('cmd', [''])[0]
             if cmd: sh(f'(crontab -l 2>/dev/null; echo "{cmd}") | crontab -'); res["msg"] = "Tarefa agendada!"
         elif act == 'delete_file':
-            fp = os.path.normpath(os.path.join("/media/videos", qs.get('file', [''])[0].lstrip("/")))
-            if fp.startswith("/media/videos") and os.path.exists(fp): os.remove(fp); res["msg"] = "Ficheiro apagado!"
+            target = os.path.normpath(os.path.join("/media/videos", qs.get('file', [''])[0].lstrip("/")))
+            if target.startswith("/media/videos") and os.path.exists(target):
+                if os.path.isdir(target): os.rmdir(target)
+                else: os.remove(target)
+                res["msg"] = "Removido com sucesso!"
         elif act == 'clean_storage': sh("rm -rf /media/videos/.Trash-0/* && sync"); res["msg"] = "Lixeira limpa!"
         elif act == 'reboot_system': subprocess.Popen(["reboot"]); res["msg"] = "A reiniciar..."
         elif act == 'poweroff_system': subprocess.Popen(["poweroff"]); res["msg"] = "A desligar..."
