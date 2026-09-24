@@ -16,7 +16,6 @@ def get_sys():
         mem = f"{int(100*(1-free/tot))}%"
     except: pass
     
-    # Detalhes extras para o Monitor Nativo
     uptime = sh("uptime -p").replace("up ", "")
     temp = sh("cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null")
     temp_c = f"{temp[:2]}°C" if len(temp) >= 2 else "N/A"
@@ -70,7 +69,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
     def do_OPTIONS(self): self.send_response(200); self.end_headers()
 
     def do_POST(self):
-        qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
         if '/upload' in self.path:
             length = int(self.headers.get('Content-Length', 0))
             fn = os.path.basename(urllib.parse.unquote(self.headers.get('X-Filename', 'upload.bin')))
@@ -117,4 +115,4 @@ class Handler(http.server.BaseHTTPRequestHandler):
     def log_message(self, fmt, *a): return
 
 if __name__ == '__main__': http.server.HTTPServer(('0.0.0.0', PORT), Handler).serve_forever()
-            
+    
