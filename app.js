@@ -1,4 +1,3 @@
-cat << 'EOF_JS' > app.js
 let topZ = 10;
 const API = `http://${window.location.hostname}:8085/`;
 
@@ -36,7 +35,7 @@ function updateClock() {
   const timeStr = d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
   document.getElementById('clock').textContent = timeStr;
   document.getElementById('widget-time').textContent = timeStr;
-  document.getElementById('widget-date').textContent = d.toLocaleDateString('pt-PT', {weekday:'short', day:'numeric', month:'short'});
+  document.getElementById('widget-date').textContent = d.toLocaleDateString('pt-BR', {weekday:'short', day:'numeric', month:'short'});
 }
 setInterval(updateClock, 1000); updateClock();
 
@@ -75,14 +74,14 @@ function runSysAction(act) {
 
 function loadFiles() {
   const box = document.getElementById('file-list'); if (!box) return;
-  box.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:12px;">A carregar...</div>';
+  box.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:12px;">Carregando...</div>';
   fetch(API + '?action=files').then(r=>r.json()).then(d=>{
-    if (!d.files || !d.files.length) { box.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:24px;text-align:center;">Nenhum ficheiro encontrado.</div>'; return; }
+    if (!d.files || !d.files.length) { box.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:24px;text-align:center;">Nenhum arquivo encontrado.</div>'; return; }
     let h = '<div style="display:flex;flex-direction:column;gap:6px;">';
     d.files.forEach(f => {
       h += `<div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.03);border:1px solid var(--surface-border);padding:10px 14px;border-radius:var(--radius-sm);">
         <div style="display:flex;align-items:center;gap:10px;"><svg style="width:16px;height:16px;stroke:var(--accent);fill:none;" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><div><div style="font-size:12px;font-weight:500;">${f.name}</div><div style="font-size:10px;color:var(--text-muted);">${f.size}</div></div></div>
-        <button class="btn-ui btn-danger" onclick="if(confirm('Excluir ficheiro?')) deleteFile('${f.path}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>Excluir</button>
+        <button class="btn-ui btn-danger" onclick="if(confirm('Excluir arquivo?')) deleteFile('${f.path}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>Excluir</button>
       </div>`;
     });
     box.innerHTML = h + '</div>';
@@ -94,23 +93,11 @@ function uploadFile() {
   const file = inp.files[0]; const btn = document.getElementById('upload-btn');
   btn.disabled = true; btn.textContent = 'Enviando...';
   fetch(API + 'upload', { method: 'POST', headers: { 'X-Filename': encodeURIComponent(file.name) }, body: file })
-    .then(r=>r.json()).then(d=>{ alert(d.msg); loadFiles(); btn.disabled = false; btn.textContent = 'Enviar Ficheiro'; inp.value = ''; })
-    .catch(e=>{ alert('Erro: ' + e); btn.disabled = false; btn.textContent = 'Enviar Ficheiro'; });
+    .then(r=>r.json()).then(d=>{ alert(d.msg); loadFiles(); btn.disabled = false; btn.textContent = 'Enviar Arquivo'; inp.value = ''; })
+    .catch(e=>{ alert('Erro: ' + e); btn.disabled = false; btn.textContent = 'Enviar Arquivo'; });
 }
 
 function deleteFile(path) { fetch(API + '?action=delete_file&file=' + encodeURIComponent(path)).then(r=>r.json()).then(()=>loadFiles()); }
-
-function loadDlna() {
-  fetch(API + '?action=stats').then(r=>r.json()).then(d=>{
-    if (d.dlna) {
-      document.getElementById('dlna-v').textContent = d.dlna.video;
-      document.getElementById('dlna-a').textContent = d.dlna.audio;
-      document.getElementById('dlna-i').textContent = d.dlna.image;
-      const c = document.getElementById('dlna-c');
-      c.innerHTML = d.dlna.clients.length ? d.dlna.clients.map(ip=>`<span style="background:rgba(255,255,255,0.05);border:1px solid var(--surface-border);padding:4px 8px;border-radius:var(--radius-sm);font-family:monospace;font-size:11px;">${ip}</span>`).join(' ') : '<span style="color:var(--text-muted);font-size:11px;">Sem clientes activos</span>';
-    }
-  });
-}
 
 function loadDisks() {
   fetch(API + '?action=disks').then(r=>r.json()).then(d=>{
@@ -169,38 +156,26 @@ function openApp(id) {
 
   let title = id, body = "";
   if (id === 'files') {
-    title = "Gestor de Ficheiros"; win.style.width = "640px"; win.style.height = "440px";
+    title = "Gerenciador de Arquivos"; win.style.width = "640px"; win.style.height = "440px";
     body = `<div style="padding:16px;height:100%;display:flex;flex-direction:column;gap:12px;">
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div style="display:flex;gap:8px;">
           <input type="file" id="file-upload-input" style="display:none;" onchange="uploadFile()">
-          <button class="btn-ui" id="upload-btn" onclick="document.getElementById('file-upload-input').click()"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Enviar Ficheiro</button>
+          <button class="btn-ui" id="upload-btn" onclick="document.getElementById('file-upload-input').click()"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Enviar Arquivo</button>
           <button class="btn-ui btn-secondary" onclick="runSysAction('clean_storage');"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>Esvaziar Lixeira</button>
         </div>
-        <button class="btn-ui btn-secondary" onclick="loadFiles()"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Actualizar</button>
+        <button class="btn-ui btn-secondary" onclick="loadFiles()"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Atualizar</button>
       </div>
       <div id="file-list" style="flex:1;overflow-y:auto;"></div>
     </div>`;
     setTimeout(loadFiles, 50);
-  } else if (id === 'minidlna') {
-    title = "Serviço MiniDLNA"; win.style.width = "500px"; win.style.height = "380px";
-    body = `<div style="padding:20px;display:flex;flex-direction:column;gap:14px;height:100%;">
-      <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:10px;">
-        <div style="background:rgba(255,255,255,0.03);border:1px solid var(--surface-border);padding:16px;border-radius:var(--radius-md);text-align:center;"><div style="font-size:10px;font-weight:600;color:var(--text-muted);">VÍDEOS</div><div id="dlna-v" style="font-size:26px;font-weight:700;color:#10b981;margin-top:4px;">0</div></div>
-        <div style="background:rgba(255,255,255,0.03);border:1px solid var(--surface-border);padding:16px;border-radius:var(--radius-md);text-align:center;"><div style="font-size:10px;font-weight:600;color:var(--text-muted);">ÁUDIOS</div><div id="dlna-a" style="font-size:26px;font-weight:700;color:var(--accent);margin-top:4px;">0</div></div>
-        <div style="background:rgba(255,255,255,0.03);border:1px solid var(--surface-border);padding:16px;border-radius:var(--radius-md);text-align:center;"><div style="font-size:10px;font-weight:600;color:var(--text-muted);">IMAGENS</div><div id="dlna-i" style="font-size:26px;font-weight:700;color:#f59e0b;margin-top:4px;">0</div></div>
-      </div>
-      <div style="background:rgba(255,255,255,0.03);border:1px solid var(--surface-border);padding:14px;border-radius:var(--radius-md);"><div style="font-size:10px;font-weight:600;color:var(--text-muted);margin-bottom:8px;">DISPOSITIVOS RECENTES</div><div id="dlna-c" style="display:flex;gap:6px;flex-wrap:wrap;">--</div></div>
-      <button class="btn-ui" style="align-self:start;margin-top:auto;" onclick="runSysAction('rescan_dlna');setTimeout(loadDlna, 2000);"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Reindexar Biblioteca (-R)</button>
-    </div>`;
-    setTimeout(loadDlna, 50);
   } else if (id === 'disks') {
-    title = "Gestor de Discos"; win.style.width = "500px"; win.style.height = "420px";
+    title = "Gerenciador de Discos"; win.style.width = "500px"; win.style.height = "420px";
     body = `<div style="padding:16px;height:100%;display:flex;flex-direction:column;gap:12px;">
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <h4 style="font-size:12px;color:var(--text-secondary);">Partições Montadas</h4>
         <button class="btn-ui btn-secondary" onclick="loadDisks()"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Atualizar</button>
-      </div><div id="disk-list" style="flex:1;overflow-y:auto;">A ler discos...</div></div>`;
+      </div><div id="disk-list" style="flex:1;overflow-y:auto;">Lendo discos...</div></div>`;
     setTimeout(loadDisks, 50);
   } else if (id === 'tasks') {
     title = "Agendador de Tarefas (Cron)"; win.style.width = "540px"; win.style.height = "380px";
@@ -208,7 +183,7 @@ function openApp(id) {
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <h4 style="font-size:12px;color:var(--text-secondary);">Tarefas do Servidor</h4>
         <button class="btn-ui" onclick="addTask()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nova Tarefa</button>
-      </div><div id="task-list" style="flex:1;overflow-y:auto;">A ler cron...</div></div>`;
+      </div><div id="task-list" style="flex:1;overflow-y:auto;">Lendo cron...</div></div>`;
     setTimeout(loadTasks, 50);
   } else if (id === 'sysinfo') {
     title = "Propriedades do Sistema"; win.style.width = "420px"; win.style.height = "320px";
@@ -229,7 +204,7 @@ function openApp(id) {
     title = "Bloco de Notas"; win.style.width = "480px"; win.style.height = "380px";
     body = `<div style="padding:14px;height:100%;display:flex;flex-direction:column;gap:10px;">
       <textarea id="os-notes-txt" style="flex:1;background:rgba(255,255,255,0.03);border:1px solid var(--surface-border);border-radius:var(--radius-sm);color:#fff;padding:12px;font-size:12px;outline:none;resize:none;font-family:monospace;">${localStorage.getItem('pos_notes')||''}</textarea>
-      <div style="display:flex;justify-content:space-between;"><button class="btn-ui" onclick="localStorage.setItem('pos_notes', document.getElementById('os-notes-txt').value);alert('Notas guardadas!');"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Guardar</button><button class="btn-ui btn-secondary" onclick="document.getElementById('os-notes-txt').value='';localStorage.removeItem('pos_notes');">Limpar</button></div>
+      <div style="display:flex;justify-content:space-between;"><button class="btn-ui" onclick="localStorage.setItem('pos_notes', document.getElementById('os-notes-txt').value);alert('Notas salvas!');"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Salvar</button><button class="btn-ui btn-secondary" onclick="document.getElementById('os-notes-txt').value='';localStorage.removeItem('pos_notes');">Limpar</button></div>
     </div>`;
   } else if (id === 'calc') {
     title = "Calculadora"; win.style.width = "280px"; win.style.height = "340px";
@@ -240,10 +215,10 @@ function openApp(id) {
       </div>
     </div>`;
   } else if (id === 'settings') {
-    title = "Definições"; win.style.width = "460px"; win.style.height = "420px";
+    title = "Configurações do Sistema"; win.style.width = "460px"; win.style.height = "420px";
     body = `<div style="padding:20px;display:flex;flex-direction:column;gap:14px;height:100%;overflow-y:auto;">
-      <div><label style="font-size:11px;font-weight:600;color:var(--text-secondary);">PERFIL DE UTILIZADOR</label><input type="text" id="cfg-user" value="${localStorage.getItem('pos_name')||'Admin'}" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--surface-border);padding:8px 12px;border-radius:var(--radius-sm);color:#fff;margin-top:6px;outline:none;"></div>
-      <div><label style="font-size:11px;font-weight:600;color:var(--text-secondary);">COR DO SISTEMA</label><div style="display:flex;gap:10px;margin-top:8px;">
+      <div><label style="font-size:11px;font-weight:600;color:var(--text-secondary);">PERFIL DE USUÁRIO</label><input type="text" id="cfg-user" value="${localStorage.getItem('pos_name')||'Admin'}" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--surface-border);padding:8px 12px;border-radius:var(--radius-sm);color:#fff;margin-top:6px;outline:none;"></div>
+      <div><label style="font-size:11px;font-weight:600;color:var(--text-secondary);">COR DE DESTAQUE</label><div style="display:flex;gap:10px;margin-top:8px;">
         <button style="width:26px;height:26px;border-radius:50%;background:#38bdf8;border:none;cursor:pointer;" onclick="savePrefs(null,null,'#38bdf8')"></button>
         <button style="width:26px;height:26px;border-radius:50%;background:#a855f7;border:none;cursor:pointer;" onclick="savePrefs(null,null,'#a855f7')"></button>
         <button style="width:26px;height:26px;border-radius:50%;background:#10b981;border:none;cursor:pointer;" onclick="savePrefs(null,null,'#10b981')"></button>
@@ -254,13 +229,10 @@ function openApp(id) {
         <button class="btn-ui btn-secondary" style="justify-content:center;" onclick="savePrefs(null,'radial-gradient(circle at 15% 15%, #1e1b4b 0%, #090d16 85%)',null)">Deep Indigo</button>
         <button class="btn-ui btn-secondary" style="justify-content:center;" onclick="savePrefs(null,'radial-gradient(circle at center, #0f172a 0%, #020617 100%)',null)">Obsidian Dark</button>
       </div></div>
-      <div style="display:flex;gap:8px;margin-top:auto;"><button class="btn-ui" style="flex:1;justify-content:center;" onclick="savePrefs(document.getElementById('cfg-user').value, null, null);alert('Guardado!')"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Guardar</button><button class="btn-ui btn-danger" onclick="resetOS()"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset Fábrica</button></div>
+      <div style="display:flex;gap:8px;margin-top:auto;"><button class="btn-ui" style="flex:1;justify-content:center;" onclick="savePrefs(document.getElementById('cfg-user').value, null, null);alert('Salvo!')"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Salvar</button><button class="btn-ui btn-danger" onclick="resetOS()"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset Fábrica</button></div>
     </div>`;
-  } else if (id === 'transmission') {
-    title = "Transmission"; win.style.width = "780px"; win.style.height = "500px";
-    body = `<iframe src="${window.location.protocol}//${window.location.hostname}:9091"></iframe>`;
   } else if (id === 'glances') {
-    title = "Monitor do Sistema"; win.style.width = "820px"; win.style.height = "480px";
+    title = "Monitor de Recursos"; win.style.width = "820px"; win.style.height = "480px";
     body = `<iframe src="${window.location.protocol}//${window.location.hostname}:61208"></iframe>`;
   }
 
@@ -319,4 +291,3 @@ function startDrag(e, id) {
   function mu() { if (ov) ov.style.display = "none"; document.removeEventListener("mousemove", mm); document.removeEventListener("mouseup", mu); }
   document.addEventListener("mousemove", mm); document.addEventListener("mouseup", mu);
 }
-EOF_JS
