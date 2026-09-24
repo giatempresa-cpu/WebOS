@@ -1,4 +1,3 @@
-cat << 'EOF_CSS' > style.css
 :root {
   --bg-primary: #090d16;
   --surface: rgba(15, 23, 42, 0.8);
@@ -55,4 +54,3 @@ body { height: 100vh; overflow: hidden; background: radial-gradient(circle at 15
 .ctx-item { padding: 8px 12px; font-size: 12px; cursor: pointer; border-radius: var(--radius-sm); color: var(--text-secondary); display: flex; align-items: center; gap: 8px; }
 .ctx-item:hover { background: var(--accent); color: #fff; }
 .ctx-item svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2; fill: none; }
-EOF_CSS
