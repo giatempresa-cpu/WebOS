@@ -13,17 +13,20 @@ fi
 
 echo "[1/4] Instalando dependências do sistema..."
 apt-get update -qq
-apt-get install -y python3 glances curl -qq
+apt-get install -y python3 glances curl wget -qq
 
-echo "[2/4] Copiando arquivos da interface web..."
+# URL base do seu repositório no GitHub
+REPO_URL="https://raw.githubusercontent.com/giatempresa-cpu/WebOS/main"
+
+echo "[2/4] Baixando arquivos da interface web do GitHub..."
 mkdir -p /var/www/html
-cp index.html /var/www/html/
-cp style.css /var/www/html/
-cp app.js /var/www/html/
+wget -qO /var/www/html/index.html "$REPO_URL/index.html"
+wget -qO /var/www/html/style.css "$REPO_URL/style.css"
+wget -qO /var/www/html/app.js "$REPO_URL/app.js"
 chmod -R 755 /var/www/html/
 
-echo "[3/4] Configurando a API Python no backend..."
-cp webos_api.py /usr/local/bin/
+echo "[3/4] Baixando e configurando a API Python no backend..."
+wget -qO /usr/local/bin/webos_api.py "$REPO_URL/webos_api.py"
 chmod +x /usr/local/bin/webos_api.py
 
 cat << 'EOF' > /etc/systemd/system/webos-api.service
