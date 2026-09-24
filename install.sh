@@ -11,13 +11,13 @@ if [ "$EUID" -ne 0 ]; then
   exit
 fi
 
-echo "[1/4] Instalando dependências e Servidor Web..."
+echo "[1/5] Instalando dependências e Servidor Web..."
 apt-get update -qq
-apt-get install -y python3 curl wget nginx -qq
+apt-get install -y python3 curl wget nginx git -qq
 
 REPO_URL="https://raw.githubusercontent.com/giatempresa-cpu/WebOS/main"
 
-echo "[2/4] Baixando arquivos da interface web do GitHub..."
+echo "[2/5] Baixando arquivos da interface web do GitHub..."
 mkdir -p /var/www/html
 wget -qO /var/www/html/index.html "$REPO_URL/index.html"
 wget -qO /var/www/html/style.css "$REPO_URL/style.css"
@@ -28,7 +28,13 @@ sed -i 's/listen 80 default_server;/listen 8080 default_server;/g' /etc/nginx/si
 sed -i 's/listen \[::\]:80 default_server;/listen \[::\]:8080 default_server;/g' /etc/nginx/sites-available/default
 systemctl restart nginx
 
-echo "[3/4] Baixando e configurando a API Python no backend..."
+echo "[3/5] Configurando ferramentas de Desenvolvimento (VS Code Server)..."
+if ! command -v code-server &> /dev/null; then
+    curl -fsSL https://code-server.dev/install.sh | sh
+    systemctl enable --now code-server@$SUDO_USER
+fi
+
+echo "[4/5] Baixando e configurando a API Python no backend..."
 wget -qO /usr/local/bin/webos_api.py "$REPO_URL/webos_api.py"
 chmod +x /usr/local/bin/webos_api.py
 
@@ -47,7 +53,7 @@ RestartSec=5
 WantedBy=multi-user.target
 EOF
 
-echo "[4/4] Iniciando serviços..."
+echo "[5/5] Iniciando serviços..."
 systemctl daemon-reload
 systemctl enable webos-api.service --now >/dev/null 2>&1
 systemctl restart webos-api.service
@@ -59,4 +65,5 @@ echo "=========================================="
 echo "    Instalação Concluída com Sucesso!     "
 echo "=========================================="
 EXT_IP=$(curl -s ifconfig.me)
-echo "Acesse no seu navegador: http://$EXT_IP:8080"
+echo "Acesse o WebOS em: http://$EXT_IP:8080"
+echo "Acesse o VS Code em: http://$EXT_IP:8443"
