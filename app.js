@@ -261,7 +261,7 @@ function openApp(id) {
         ${['7','8','9','/','4','5','6','*','1','2','3','-','C','0','=','+'].map(k=>`<button class="btn-ui btn-secondary" style="justify-content:center;font-size:14px;" onclick="calcPress('${k}')">${k}</button>`).join('')}
       </div>
     </div>`;
-  } else if (id === 'settings') {
+} else if (id === 'settings') {
     title = "Configurações"; win.style.width = "460px"; win.style.height = "420px";
     body = `<div style="padding:20px;display:flex;flex-direction:column;gap:14px;height:100%;overflow-y:auto;">
       <div><label style="font-size:11px;font-weight:600;color:var(--text-secondary);">PERFIL</label><input type="text" id="cfg-user" value="${localStorage.getItem('pos_name')||'Admin'}" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--surface-border);padding:8px 12px;border-radius:var(--radius-sm);color:#fff;margin-top:6px;outline:none;"></div>
@@ -274,9 +274,26 @@ function openApp(id) {
       </div></div>
       <div style="display:flex;gap:8px;margin-top:auto;"><button class="btn-ui" style="flex:1;justify-content:center;" onclick="savePrefs(document.getElementById('cfg-user').value, null, null);alert('Salvo!')">Salvar</button><button class="btn-ui btn-danger" onclick="resetOS()">Reset Fábrica</button></div>
     </div>`;
-  } else if (id === 'vscode') {
-    title = "Visual Studio Code"; win.style.width = "900px"; win.style.height = "560px";
-    body = `<iframe src="${window.location.protocol}//${window.location.hostname}:8443"></iframe>`;
+  } else if (id === 'dev') {
+    title = "Ambiente Dev"; win.style.width = "850px"; win.style.height = "520px";
+    body = `<div style="display:flex;height:100%;background:#090d16;">
+      <div style="width:240px;border-right:1px solid var(--surface-border);display:flex;flex-direction:column;padding:10px;">
+        <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">EXPLORADOR</div>
+        <div id="dev-file-list" style="flex:1;overflow-y:auto;font-size:12px;"></div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;">
+        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.02);padding:8px 12px;border-bottom:1px solid var(--surface-border);">
+          <span id="dev-current-file" style="font-size:11px;color:var(--accent);font-family:monospace;">Nenhum ficheiro aberto</span>
+          <button class="btn-ui" onclick="saveActiveFile()">Salvar</button>
+        </div>
+        <textarea id="dev-editor" style="flex:1;background:#05080f;color:#38bdf8;border:none;padding:12px;font-family:monospace;font-size:12px;outline:none;resize:none;" placeholder="Selecione um ficheiro..."></textarea>
+        <div style="height:130px;border-top:1px solid var(--surface-border);display:flex;flex-direction:column;background:#03050a;">
+          <textarea id="term-out" readonly style="flex:1;background:transparent;color:#10b981;border:none;padding:6px 10px;font-family:monospace;font-size:11px;outline:none;resize:none;"></textarea>
+          <input type="text" id="term-in" placeholder="Digite um comando e Enter..." style="background:transparent;border:none;border-top:1px solid var(--surface-border);color:#fff;padding:6px 10px;font-family:monospace;font-size:11px;outline:none;" onkeydown="if(event.key==='Enter') runTerminalCmd()">
+        </div>
+      </div>
+    </div>`;
+    setTimeout(() => loadDevFiles(""), 50);
   }
 
   win.innerHTML = `<div class="window-header" onmousedown="startDrag(event, '${win.id}')">
