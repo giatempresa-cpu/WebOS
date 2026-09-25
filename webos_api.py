@@ -84,6 +84,21 @@ class Handler(http.server.BaseHTTPRequestHandler):
             os.makedirs(target, exist_ok=True)
             self.send_response(200); self.end_headers()
             self.wfile.write(b'{"status":"success","msg":"Pasta criada!"}')
+        elif '/install_app' in self.path:
+            app_name = body.get('app', '')
+            if app_name == 'torrent':
+                # Instala o Transmission sem fazer perguntas na consola
+                sh("apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y transmission-daemon")
+                msg = "Transmission (Torrent) instalado com sucesso na VPS!"
+            elif app_name == 'dlna':
+                # Instala o MiniDLNA
+                sh("apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y minidlna")
+                msg = "Servidor MiniDLNA instalado com sucesso!"
+            else:
+                msg = "Aplicação não encontrada."
+                
+            self.send_response(200); self.end_headers()
+            self.wfile.write(json.dumps({"status": "success", "msg": msg}).encode('utf-8'))
         elif '/save_file' in self.path:
             filepath = body.get('path', '')
             content = body.get('content', '')
