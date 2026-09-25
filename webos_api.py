@@ -26,12 +26,12 @@ def get_disks():
     out = []
     for line in sh("df -h").splitlines()[1:]:
         p = line.split()
-        if len(p) >= 6 and (p[0].startswith('/dev/') or p[5] == '/media/videos'):
+        if len(p) >= 6 and (p[0].startswith('/dev/') or p[5] == '/'):
             out.append({"dev": p[0], "size": p[1], "used": p[2], "avail": p[3], "perc": p[4], "mount": p[5]})
     return out
 
 def get_files(req_path):
-    base = "/media/videos"
+    base = "/"
     target = os.path.normpath(os.path.join(base, req_path.lstrip("/")))
     if not target.startswith(base): target = base
     if not os.path.exists(target): os.makedirs(target, exist_ok=True)
@@ -72,7 +72,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if '/upload' in self.path:
             fn = os.path.basename(urllib.parse.unquote(self.headers.get('X-Filename', 'upload.bin')))
             subpath = urllib.parse.unquote(self.headers.get('X-Path', ''))
-            dest_dir = os.path.normpath(os.path.join("/media/videos", subpath.lstrip("/")))
+            dest_dir = os.path.normpath(os.path.join("/", subpath.lstrip("/")))
             os.makedirs(dest_dir, exist_ok=True)
             with open(os.path.join(dest_dir, fn), 'wb') as f: f.write(self.rfile.read(length))
             self.send_response(200); self.end_headers()
@@ -80,15 +80,15 @@ class Handler(http.server.BaseHTTPRequestHandler):
         elif '/mkdir' in self.path:
             dirname = body.get('name', 'Nova Pasta')
             subpath = body.get('path', '')
-            target = os.path.normpath(os.path.join("/media/videos", subpath.lstrip("/"), dirname))
+            target = os.path.normpath(os.path.join("/", subpath.lstrip("/"), dirname))
             os.makedirs(target, exist_ok=True)
             self.send_response(200); self.end_headers()
             self.wfile.write(b'{"status":"success","msg":"Pasta criada!"}')
         elif '/save_file' in self.path:
             filepath = body.get('path', '')
             content = body.get('content', '')
-            target = os.path.normpath(os.path.join("/media/videos", filepath.lstrip("/")))
-            if target.startswith("/media/videos"):
+            target = os.path.normpath(os.path.join("/", filepath.lstrip("/")))
+            if target.startswith("/"):
                 with open(target, 'w', encoding='utf-8') as f: f.write(content)
                 self.send_response(200); self.end_headers()
                 self.wfile.write(b'{"status":"success","msg":"Ficheiro salvo com sucesso!"}')
@@ -109,9 +109,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
         elif act == 'files': res = get_files(qs.get('path', [''])[0])
         elif act == 'read_file':
             filepath = qs.get('file', [''])[0]
-            target = os.path.normpath(os.path.join("/media/videos", filepath.lstrip("/")))
+            target = os.path.normpath(os.path.join("/", filepath.lstrip("/")))
             content = ""
-            if target.startswith("/media/videos") and os.path.exists(target):
+            if target.startswith("/") and os.path.exists(target):
                 with open(target, 'r', encoding='utf-8', errors='ignore') as f: content = f.read()
             res = {"content": content}
         elif act == 'disks': res = {"disks": get_disks()}
@@ -122,8 +122,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
             cmd = qs.get('cmd', [''])[0]
             if cmd: sh(f'(crontab -l 2>/dev/null; echo "{cmd}") | crontab -'); res["msg"] = "Tarefa agendada!"
         elif act == 'delete_file':
-            target = os.path.normpath(os.path.join("/media/videos", qs.get('file', [''])[0].lstrip("/")))
-            if target.startswith("/media/videos") and os.path.exists(target):
+            target = os.path.normpath(os.path.join("/", qs.get('file', [''])[0].lstrip("/")))
+            if target.startswith("/") and os.path.exists(target):
                 if os.path.isdir(target): os.rmdir(target)
                 else: os.remove(target)
                 res["msg"] = "Removido com sucesso!"
