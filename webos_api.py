@@ -33,11 +33,8 @@ def get_disks():
 def get_files(req_path):
     base = "/media/videos"
     target = os.path.normpath(os.path.join(base, req_path.lstrip("/")))
-    if not target.startswith(base):
-        target = base
-    
-    if not os.path.exists(target):
-        os.makedirs(target, exist_ok=True)
+    if not target.startswith(base): target = base
+    if not os.path.exists(target): os.makedirs(target, exist_ok=True)
 
     items = []
     try:
@@ -89,12 +86,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.wfile.write(b'{"status":"success","msg":"Pasta criada!"}')
 
     def do_GET(self):
-        qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        # Remove o prefixo /api se vier do Nginx proxy
+        clean_path = self.path.replace('/api', '', 1)
+        qs = urllib.parse.parse_qs(urllib.parse.urlparse(clean_path).query)
         act = qs.get('action', [''])[0]; res = {"status": "success", "msg": "OK"}
+        
         if act == 'stats': res = {"sys": get_sys()}
-        elif act == 'files':
-            req_path = qs.get('path', [''])[0]
-            res = get_files(req_path)
+        elif act == 'files': res = get_files(qs.get('path', [''])[0])
         elif act == 'disks': res = {"disks": get_disks()}
         elif act == 'sysinfo': res = {"info": get_info()}
         elif act == 'sysinfo_ip': res = {"ip": sh("hostname -I | awk '{print $1}'")}
@@ -111,8 +109,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
         elif act == 'clean_storage': sh("rm -rf /media/videos/.Trash-0/* && sync"); res["msg"] = "Lixeira limpa!"
         elif act == 'reboot_system': subprocess.Popen(["reboot"]); res["msg"] = "A reiniciar..."
         elif act == 'poweroff_system': subprocess.Popen(["poweroff"]); res["msg"] = "A desligar..."
+        
         self.send_response(200); self.end_headers(); self.wfile.write(json.dumps(res).encode('utf-8'))
     def log_message(self, fmt, *a): return
 
-if __name__ == '__main__': http.server.HTTPServer(('0.0.0.0', PORT), Handler).serve_forever()
-    
+if __name__ == '__main__': http.server.HTTPServer(('127.0.0.1', PORT), Handler).serve_forever()
