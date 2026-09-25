@@ -293,6 +293,18 @@ function openApp(id) {
         <button class="btn-ui btn-danger" style="padding:10px;" onclick="resetOS()">⟲ Reset Fábrica</button>
       </div>
     </div>`;
+  } else if (id === 'terminal') {
+    title = "Terminal SSH (Web)"; win.style.width = "650px"; win.style.height = "450px";
+    body = `<div style="display:flex;flex-direction:column;height:100%;background:#050505;">
+      <div id="term-box-container" style="flex:1;padding:12px;overflow-y:auto;background:#050505;">
+         <pre id="term-box-out" style="color:#10b981;font-family:monospace;font-size:13px;margin:0;white-space:pre-wrap;">Ligado à VPS (WebOS Root)\nDigite um comando para começar...\n</pre>
+      </div>
+      <div style="display:flex;border-top:1px solid #222;background:#0a0a0a;padding:8px;align-items:center;">
+        <span style="color:#10b981;padding-right:8px;font-family:monospace;font-size:13px;font-weight:bold;">root@vps:~#</span>
+        <input type="text" id="term-box-in" autocomplete="off" placeholder="..." style="flex:1;background:transparent;border:none;color:#fff;font-family:monospace;font-size:13px;outline:none;" onkeydown="if(event.key==='Enter') runAppTerminalCmd()">
+      </div>
+    </div>`;
+    setTimeout(() => document.getElementById('term-box-in').focus(), 100);
   } else if (id === 'dev') {
     title = "Ambiente Dev"; win.style.width = "850px"; win.style.height = "520px";
     body = `<div style="display:flex;height:100%;background:#090d16;">
@@ -454,5 +466,34 @@ function runTerminalCmd() {
   }).then(r=>r.json()).then(d => {
     outBox.value += d.output || '';
     outBox.scrollTop = outBox.scrollHeight;
+  });
+}
+
+function runAppTerminalCmd() {
+  const inp = document.getElementById('term-box-in');
+  const cmd = inp.value.trim(); 
+  if (!cmd) return;
+  
+  if (cmd === 'clear') {
+    document.getElementById('term-box-out').textContent = '';
+    inp.value = '';
+    return;
+  }
+  
+  inp.value = '';
+  const outBox = document.getElementById('term-box-out');
+  const container = document.getElementById('term-box-container');
+  outBox.textContent += `\nroot@vps:~# ${cmd}\n`;
+  
+  fetch(API + 'run_cmd', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ cmd: cmd })
+  }).then(r=>r.json()).then(d => {
+    outBox.textContent += (d.output ? d.output : '') + '\n';
+    container.scrollTop = container.scrollHeight;
+  }).catch(e => {
+    outBox.textContent += `[Erro de Ligação]: ${e}\n`;
+    container.scrollTop = container.scrollHeight;
   });
 }
