@@ -3,8 +3,8 @@ import http.server, subprocess, json, urllib.parse, os
 PORT = 8085
 
 def sh(cmd):
-    try: return subprocess.check_output(cmd, shell=True).decode('utf-8', errors='ignore').strip()
-    except: return ""
+    try: return subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT).decode('utf-8', errors='ignore').strip()
+    except Exception as e: return str(e)
 
 def get_sys():
     cpu, mem = "0%", "0%"
@@ -66,8 +66,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
     def do_OPTIONS(self): self.send_response(200); self.end_headers()
 
     def do_POST(self):
+        length = int(self.headers.get('Content-Length', 0))
+        body = json.loads(self.rfile.read(length).decode('utf-8')) if length > 0 else {}
+
         if '/upload' in self.path:
-            length = int(self.headers.get('Content-Length', 0))
             fn = os.path.basename(urllib.parse.unquote(self.headers.get('X-Filename', 'upload.bin')))
             subpath = urllib.parse.unquote(self.headers.get('X-Path', ''))
             dest_dir = os.path.normpath(os.path.join("/media/videos", subpath.lstrip("/")))
@@ -76,14 +78,27 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.send_response(200); self.end_headers()
             self.wfile.write(b'{"status":"success","msg":"Arquivo guardado com sucesso!"}')
         elif '/mkdir' in self.path:
-            length = int(self.headers.get('Content-Length', 0))
-            body = json.loads(self.rfile.read(length).decode('utf-8')) if length > 0 else {}
             dirname = body.get('name', 'Nova Pasta')
             subpath = body.get('path', '')
             target = os.path.normpath(os.path.join("/media/videos", subpath.lstrip("/"), dirname))
             os.makedirs(target, exist_ok=True)
             self.send_response(200); self.end_headers()
             self.wfile.write(b'{"status":"success","msg":"Pasta criada!"}')
+        elif '/save_file' in self.path:
+            filepath = body.get('path', '')
+            content = body.get('content', '')
+            target = os.path.normpath(os.path.join("/media/videos", filepath.lstrip("/")))
+            if target.startswith("/media/videos"):
+                with open(target, 'w', encoding='utf-8') as f: f.write(content)
+                self.send_response(200); self.end_headers()
+                self.wfile.write(b'{"status":"success","msg":"Ficheiro salvo com sucesso!"}')
+            else:
+                self.send_response(400); self.end_headers()
+        elif '/run_cmd' in self.path:
+            cmd = body.get('cmd', '')
+            output = sh(cmd)
+            self.send_response(200); self.end_headers()
+            self.wfile.write(json.dumps({"output": output}).encode('utf-8'))
 
     def do_GET(self):
         clean_path = self.path.replace('/api', '', 1)
@@ -92,6 +107,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
         
         if act == 'stats': res = {"sys": get_sys()}
         elif act == 'files': res = get_files(qs.get('path', [''])[0])
+        elif act == 'read_file':
+            filepath = qs.get('file', [''])[0]
+            target = os.path.normpath(os.path.join("/media/videos", filepath.lstrip("/")))
+            content = ""
+            if target.startswith("/media/videos") and os.path.exists(target):
+                with open(target, 'r', encoding='utf-8', errors='ignore') as f: content = f.read()
+            res = {"content": content}
         elif act == 'disks': res = {"disks": get_disks()}
         elif act == 'sysinfo': res = {"info": get_info()}
         elif act == 'sysinfo_ip': res = {"ip": sh("hostname -I | awk '{print $1}'")}
@@ -105,7 +127,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 if os.path.isdir(target): os.rmdir(target)
                 else: os.remove(target)
                 res["msg"] = "Removido com sucesso!"
-        elif act == 'clean_storage': sh("rm -rf /media/videos/.Trash-0/* && sync"); res["msg"] = "Lixeira limpa!"
         elif act == 'reboot_system': subprocess.Popen(["reboot"]); res["msg"] = "A reiniciar..."
         elif act == 'poweroff_system': subprocess.Popen(["poweroff"]); res["msg"] = "A desligar..."
         
