@@ -381,3 +381,59 @@ function addTask() {
   const t = prompt("Comando no formato Cron:\nExemplo: 0 4 * * * /sbin/reboot");
   if (t) fetch(API + '?action=add_task&cmd=' + encodeURIComponent(t)).then(r=>r.json()).then(d=>{ alert(d.msg); loadTasks(); });
 }
+
+let activeEditFile = "";
+
+function loadDevFiles(path = "") {
+  fetch(API + '?action=files&path=' + encodeURIComponent(path)).then(r=>r.json()).then(d=>{
+    let h = '<div style="display:flex;flex-direction:column;gap:4px;">';
+    if (path !== "") {
+      const parentPath = path.split('/').slice(0, -1).join('/');
+      h += `<div style="padding:6px;cursor:pointer;color:var(--accent);" onclick="loadDevFiles('${parentPath}')">📁 ..</div>`;
+    }
+    if (d.items) {
+      d.items.forEach(item => {
+        if (item.is_dir) {
+          h += `<div style="padding:6px;cursor:pointer;color:#f59e0b;" onclick="loadDevFiles('${item.path}')">📁 ${item.name}/</div>`;
+        } else {
+          h += `<div style="padding:6px;cursor:pointer;color:#fff;" onclick="openDevFile('${item.path}')">📄 ${item.name}</div>`;
+        }
+      });
+    }
+    const box = document.getElementById('dev-file-list');
+    if (box) box.innerHTML = h + '</div>';
+  });
+}
+
+function openDevFile(path) {
+  activeEditFile = path;
+  document.getElementById('dev-current-file').textContent = path;
+  fetch(API + '?action=read_file&file=' + encodeURIComponent(path)).then(r=>r.json()).then(d=>{
+    document.getElementById('dev-editor').value = d.content || '';
+  });
+}
+
+function saveActiveFile() {
+  if (!activeEditFile) { alert("Nenhum ficheiro aberto!"); return; }
+  fetch(API + 'save_file', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ path: activeEditFile, content: document.getElementById('dev-editor').value })
+  }).then(r=>r.json()).then(d=> alert(d.msg));
+}
+
+function runTerminalCmd() {
+  const inp = document.getElementById('term-in');
+  const cmd = inp.value.trim(); if (!cmd) return;
+  inp.value = '';
+  const outBox = document.getElementById('term-out');
+  outBox.value += `\n$ ${cmd}\n`;
+  fetch(API + 'run_cmd', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ cmd: cmd })
+  }).then(r=>r.json()).then(d => {
+    outBox.value += d.output || '';
+    outBox.scrollTop = outBox.scrollHeight;
+  });
+}
