@@ -262,18 +262,36 @@ function openApp(id) {
       </div>
     </div>`;
 } else if (id === 'settings') {
-    title = "Configurações"; win.style.width = "460px"; win.style.height = "420px";
-    body = `<div style="padding:20px;display:flex;flex-direction:column;gap:14px;height:100%;overflow-y:auto;">
-      <div><label style="font-size:11px;font-weight:600;color:var(--text-secondary);">PERFIL</label><input type="text" id="cfg-user" value="${localStorage.getItem('pos_name')||'Admin'}" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--surface-border);padding:8px 12px;border-radius:var(--radius-sm);color:#fff;margin-top:6px;outline:none;"></div>
-      <div><label style="font-size:11px;font-weight:600;color:var(--text-secondary);">FUNDO DE TELA (URL)</label><input type="text" id="cfg-bg" value="${localStorage.getItem('pos_bg')||''}" placeholder="Cole o link da imagem aqui..." style="width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--surface-border);padding:8px 12px;border-radius:var(--radius-sm);color:#fff;margin-top:6px;outline:none;"></div>
-      <div><label style="font-size:11px;font-weight:600;color:var(--text-secondary);">COR DO SISTEMA</label><div style="display:flex;gap:10px;margin-top:8px;">
-        <button style="width:26px;height:26px;border-radius:50%;background:#38bdf8;border:none;cursor:pointer;" onclick="savePrefs(null,null,'#38bdf8')"></button>
-        <button style="width:26px;height:26px;border-radius:50%;background:#a855f7;border:none;cursor:pointer;" onclick="savePrefs(null,null,'#a855f7')"></button>
-        <button style="width:26px;height:26px;border-radius:50%;background:#10b981;border:none;cursor:pointer;" onclick="savePrefs(null,null,'#10b981')"></button>
-        <button style="width:26px;height:26px;border-radius:50%;background:#f59e0b;border:none;cursor:pointer;" onclick="savePrefs(null,null,'#f59e0b')"></button>
-        <button style="width:26px;height:26px;border-radius:50%;background:#f43f5e;border:none;cursor:pointer;" onclick="savePrefs(null,null,'#f43f5e')"></button>
-      </div></div>
-      <div style="display:flex;gap:8px;margin-top:auto;"><button class="btn-ui" style="flex:1;justify-content:center;" onclick="savePrefs(document.getElementById('cfg-user').value, document.getElementById('cfg-bg').value, null);alert('Salvo!')">Salvar</button><button class="btn-ui btn-danger" onclick="resetOS()">Reset Fábrica</button></div>
+    title = "Definições"; win.style.width = "460px"; win.style.height = "440px";
+    body = `<div style="padding:20px;display:flex;flex-direction:column;gap:16px;height:100%;overflow-y:auto;">
+      <div>
+        <label style="font-size:11px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px;">PERFIL DE UTILIZADOR</label>
+        <input type="text" id="cfg-user" value="${localStorage.getItem('pos_name')||'Admin'}" style="width:100%;background:rgba(255,255,255,0.03);border:1px solid var(--surface-border);padding:10px 12px;border-radius:var(--radius-sm);color:#fff;outline:none;">
+      </div>
+
+      <div>
+        <label style="font-size:11px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:8px;">COR DO SISTEMA</label>
+        <div style="display:flex;gap:10px;">
+          <button style="width:26px;height:26px;border-radius:50%;background:#38bdf8;border:none;cursor:pointer;" onclick="savePrefs(null,null,'#38bdf8')"></button>
+          <button style="width:26px;height:26px;border-radius:50%;background:#a855f7;border:none;cursor:pointer;" onclick="savePrefs(null,null,'#a855f7')"></button>
+          <button style="width:26px;height:26px;border-radius:50%;background:#10b981;border:none;cursor:pointer;" onclick="savePrefs(null,null,'#10b981')"></button>
+          <button style="width:26px;height:26px;border-radius:50%;background:#f59e0b;border:none;cursor:pointer;" onclick="savePrefs(null,null,'#f59e0b')"></button>
+          <button style="width:26px;height:26px;border-radius:50%;background:#f43f5e;border:none;cursor:pointer;" onclick="savePrefs(null,null,'#f43f5e')"></button>
+        </div>
+      </div>
+
+      <div>
+        <label style="font-size:11px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:8px;">TEMA DE FUNDO</label>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <button class="btn-ui btn-secondary" style="width:100%;justify-content:center;padding:10px;" onclick="savePrefs(null, 'radial-gradient(circle at 15% 15%, #1e1b4b 0%, #090d16 85%)', null)">Deep Indigo</button>
+          <button class="btn-ui btn-secondary" style="width:100%;justify-content:center;padding:10px;" onclick="savePrefs(null, 'radial-gradient(circle at 50% 50%, #111827 0%, #030712 100%)', null)">Obsidian Dark</button>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:auto;">
+        <button class="btn-ui" style="flex:1;justify-content:center;padding:10px;" onclick="savePrefs(document.getElementById('cfg-user').value, null, null);alert('Definições guardadas!')">✓ Guardar</button>
+        <button class="btn-ui btn-danger" style="padding:10px;" onclick="resetOS()">⟲ Reset Fábrica</button>
+      </div>
     </div>`;
   } else if (id === 'dev') {
     title = "Ambiente Dev"; win.style.width = "850px"; win.style.height = "520px";
