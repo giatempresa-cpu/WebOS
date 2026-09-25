@@ -77,7 +77,7 @@ function loadFiles(path = "") {
   currentDir = path;
   const box = document.getElementById('file-list'); if (!box) return;
   const pathLbl = document.getElementById('current-path-lbl');
-  if (pathLbl) pathLbl.textContent = "/media/videos" + (path ? "/" + path : "");
+  if (pathLbl) pathLbl.textContent = "/" + (path ? path : "");
   
   box.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:12px;">Carregando diretório...</div>';
   
@@ -179,7 +179,7 @@ function openApp(id) {
     title = "Gerenciador de Arquivos"; win.style.width = "680px"; win.style.height = "460px";
     body = `<div style="padding:16px;height:100%;display:flex;flex-direction:column;gap:10px;">
       <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.02);padding:8px;border-radius:var(--radius-sm);border:1px solid var(--surface-border);">
-        <span id="current-path-lbl" style="font-family:monospace;font-size:11px;color:var(--accent);">/media/videos</span>
+        <span id="current-path-lbl" style="font-family:monospace;font-size:11px;color:var(--accent);">/</span>
         <div style="display:flex;gap:6px;">
           <input type="file" id="file-upload-input" style="display:none;" onchange="uploadFile()">
           <button class="btn-ui" id="upload-btn" onclick="document.getElementById('file-upload-input').click()">Enviar Arquivo</button>
