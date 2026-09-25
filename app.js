@@ -305,6 +305,28 @@ function openApp(id) {
       </div>
     </div>`;
     setTimeout(() => document.getElementById('term-box-in').focus(), 100);
+  } else if (id === 'store') {
+    title = "Loja de Aplicações"; win.style.width = "500px"; win.style.height = "380px";
+    body = `<div style="padding:20px;display:flex;flex-direction:column;gap:14px;height:100%;overflow-y:auto;background:#050505;">
+      <h3 style="color:#fff;font-size:14px;margin:0;">Catálogo de Aplicações</h3>
+      <p style="color:var(--text-muted);font-size:11px;margin-top:-8px;">Instale apenas o necessário. O tráfego na Cloud pode gerar custos.</p>
+      
+      <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.05);padding:14px;border-radius:8px;border:1px solid #222;">
+        <div>
+          <div style="color:#38bdf8;font-weight:bold;font-size:13px;">Transmission (Torrent)</div>
+          <div style="color:#aaa;font-size:11px;margin-top:4px;">Cliente leve para descarregar ficheiros P2P.</div>
+        </div>
+        <button class="btn-ui" style="background:#0284c7;" onclick="installApp('torrent', this)">Instalar</button>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.05);padding:14px;border-radius:8px;border:1px solid #222;">
+        <div>
+          <div style="color:#10b981;font-weight:bold;font-size:13px;">MiniDLNA (Servidor Multimédia)</div>
+          <div style="color:#aaa;font-size:11px;margin-top:4px;">Transmita vídeos da nuvem para as suas Smart TVs.</div>
+        </div>
+        <button class="btn-ui" style="background:#0284c7;" onclick="installApp('dlna', this)">Instalar</button>
+      </div>
+    </div>`;
   } else if (id === 'dev') {
     title = "Ambiente Dev"; win.style.width = "850px"; win.style.height = "520px";
     body = `<div style="display:flex;height:100%;background:#090d16;">
@@ -495,5 +517,24 @@ function runAppTerminalCmd() {
   }).catch(e => {
     outBox.textContent += `[Erro de Ligação]: ${e}\n`;
     container.scrollTop = container.scrollHeight;
+  });
+}
+
+function installApp(app, btn) {
+  if(!confirm("Atenção: A Google Cloud cobra pelo uso intenso de rede. Tem a certeza que deseja instalar este pacote?")) return;
+  btn.textContent = "A instalar...";
+  btn.disabled = true;
+  fetch(API + 'install_app', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ app: app })
+  }).then(r=>r.json()).then(d => {
+    alert(d.msg);
+    btn.textContent = "Instalado";
+    btn.style.background = "#10b981";
+  }).catch(e => {
+    alert("Erro na instalação.");
+    btn.textContent = "Instalar";
+    btn.disabled = false;
   });
 }
