@@ -306,26 +306,41 @@ function openApp(id) {
     </div>`;
     setTimeout(() => document.getElementById('term-box-in').focus(), 100);
   } else if (id === 'store') {
-    title = "Loja de Aplicações"; win.style.width = "500px"; win.style.height = "380px";
+    title = "Loja de Aplicações"; win.style.width = "500px"; win.style.height = "450px";
     body = `<div style="padding:20px;display:flex;flex-direction:column;gap:14px;height:100%;overflow-y:auto;background:#050505;">
       <h3 style="color:#fff;font-size:14px;margin:0;">Catálogo de Aplicações</h3>
-      <p style="color:var(--text-muted);font-size:11px;margin-top:-8px;">Instale apenas o necessário. O tráfego na Cloud pode gerar custos.</p>
       
+      <!-- Aplicações de Backend -->
       <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.05);padding:14px;border-radius:8px;border:1px solid #222;">
         <div>
           <div style="color:#38bdf8;font-weight:bold;font-size:13px;">Transmission (Torrent)</div>
-          <div style="color:#aaa;font-size:11px;margin-top:4px;">Cliente leve para descarregar ficheiros P2P.</div>
         </div>
         <button class="btn-ui" style="background:#0284c7;" onclick="installApp('torrent', this)">Instalar</button>
       </div>
-
       <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.05);padding:14px;border-radius:8px;border:1px solid #222;">
         <div>
-          <div style="color:#10b981;font-weight:bold;font-size:13px;">MiniDLNA (Servidor Multimédia)</div>
-          <div style="color:#aaa;font-size:11px;margin-top:4px;">Transmita vídeos da nuvem para as suas Smart TVs.</div>
+          <div style="color:#10b981;font-weight:bold;font-size:13px;">MiniDLNA (Servidor)</div>
         </div>
         <button class="btn-ui" style="background:#0284c7;" onclick="installApp('dlna', this)">Instalar</button>
       </div>
+
+      <!-- Aplicações de Frontend -->
+      <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.05);padding:14px;border-radius:8px;border:1px solid #222;margin-top:10px;">
+        <div>
+          <div style="color:#f59e0b;font-weight:bold;font-size:13px;">Navegador Web</div>
+          <div style="color:#aaa;font-size:11px;margin-top:4px;">Embutido no sistema. Não consome banda da VPS.</div>
+        </div>
+        <button class="btn-ui" style="background:#0284c7;" onclick="installFrontendApp('browser', this)">Instalar</button>
+      </div>
+    </div>`;
+  } else if (id === 'browser') {
+    title = "Navegador Web"; win.style.width = "800px"; win.style.height = "500px";
+    body = `<div style="display:flex;flex-direction:column;height:100%;background:#fff;">
+      <div style="display:flex;gap:8px;padding:8px;background:#1e1e1e;border-bottom:1px solid #333;">
+        <input type="text" id="browser-url" value="https://www.wikipedia.org" style="flex:1;padding:6px 12px;border-radius:4px;border:none;background:#333;color:#fff;outline:none;" onkeydown="if(event.key==='Enter') document.getElementById('browser-frame').src = this.value.startsWith('http') ? this.value : 'https://' + this.value">
+        <button class="btn-ui" style="padding:6px 16px;background:#38bdf8;" onclick="document.getElementById('browser-frame').src = document.getElementById('browser-url').value.startsWith('http') ? document.getElementById('browser-url').value : 'https://' + document.getElementById('browser-url').value">Ir</button>
+      </div>
+      <iframe id="browser-frame" src="https://www.wikipedia.org" style="flex:1;border:none;width:100%;background:#fff;"></iframe>
     </div>`;
   } else if (id === 'dev') {
     title = "Ambiente Dev"; win.style.width = "850px"; win.style.height = "520px";
