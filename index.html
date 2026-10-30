@@ -20,7 +20,7 @@
     <svg viewBox="0 0 24 24"><line x1="22" y1="12" x2="2" y2="12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/><line x1="6" y1="16" x2="6.01" y2="16"/><line x1="10" y1="16" x2="10.01" y2="16"/></svg>
     <span>Discos</span>
   </div>
-   ondblclick="openApp('tasks')">
+  <div class="desktop-icon" ondblclick="openApp('tasks')">
     <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M12 14v4"/><path d="M12 18h4"/></svg>
     <span>Agendador</span>
   </div>
@@ -36,7 +36,7 @@
     <svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="16" y1="14" x2="16" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>
     <span>Calculadora</span>
   </div>
-<div class="desktop-icon" ondblclick="openApp('dev')">
+  <div class="desktop-icon" ondblclick="openApp('dev')">
     <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
     <span>Ambiente Dev</span>
   </div>
@@ -52,7 +52,12 @@
     <svg viewBox="0 0 24 24" style="stroke: #f59e0b; fill: none; stroke-width: 2;"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
     <span>App Store</span>
   </div>
+  <div class="desktop-icon" id="icon-browser" ondblclick="openApp('browser')" style="display: none;">
+    <svg viewBox="0 0 24 24" style="stroke: #38bdf8; fill: none; stroke-width: 2;"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+    <span>Navegador</span>
+  </div>
 </div>
+
 <div class="widget"><div id="widget-time">--:--</div><div id="widget-date">Carregando...</div></div>
 <div id="lock-screen">
   <div style="width:64px;height:64px;border-radius:var(--radius-lg);background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:24px;" id="lock-avatar">U</div>
@@ -92,22 +97,10 @@
     <div class="tray-badge">RAM <span id="tray-ram">--%</span></div>
     <span id="clock" style="color:var(--text-secondary);">--:--</span>
   </div>
-  <!-- Ícone da App Store (já existe) -->
-  <div class="desktop-icon" ondblclick="openApp('store')">
-    <svg viewBox="0 0 24 24" style="stroke: #f59e0b; fill: none; stroke-width: 2;"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
-    <span>App Store</span>
-  </div>
-
-  <!-- Ícone do Navegador (COLE EXATAMENTE AQUI) -->
-  <div class="desktop-icon" id="icon-browser" ondblclick="openApp('browser')" style="display: none;">
-    <svg viewBox="0 0 24 24" style="stroke: #38bdf8; fill: none; stroke-width: 2;"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-    <span>Navegador</span>
-  </div>
 </div>
   <script src="app.js"></script>
 
   <script>
-    // Coloque este script no final do <body> para checar a instalação ao ligar o WebOS
     if (localStorage.getItem('app_browser') === 'installed') {
       document.getElementById('icon-browser').style.display = 'flex';
     }
