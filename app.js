@@ -553,3 +553,16 @@ function installApp(app, btn) {
     btn.disabled = false;
   });
 }
+
+function installFrontendApp(app, btn) {
+  btn.textContent = "A instalar...";
+  btn.disabled = true;
+  setTimeout(() => {
+    if (app === 'browser') {
+      localStorage.setItem('app_browser', 'installed');
+      document.getElementById('icon-browser').style.display = 'flex';
+    }
+    btn.textContent = "Instalado";
+    btn.style.background = "#10b981";
+  }, 500);
+}
