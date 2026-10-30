@@ -92,7 +92,18 @@
     <div class="tray-badge">RAM <span id="tray-ram">--%</span></div>
     <span id="clock" style="color:var(--text-secondary);">--:--</span>
   </div>
+  <div class="desktop-icon" id="icon-browser" ondblclick="openApp('browser')" style="display: none;">
+    <svg viewBox="0 0 24 24" style="stroke: #38bdf8; fill: none; stroke-width: 2;"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+    <span>Navegador</span>
+  </div>
 </div>
-<script src="app.js"></script>
+  <script src="app.js"></script>
+
+  <script>
+    // Coloque este script no final do <body> para checar a instalação ao ligar o WebOS
+    if (localStorage.getItem('app_browser') === 'installed') {
+      document.getElementById('icon-browser').style.display = 'flex';
+    }
+  </script>
 </body>
 </html>
